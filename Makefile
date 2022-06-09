@@ -22,7 +22,7 @@ NODE_FILES  = $(NODE_SCRIPT) package-lock.json
 
 SRC = $(shell find src -name "*.ts")
 
-all: $(KWINPKG_DIR)
+all: clean $(KWINPKG_DIR) package
 
 clean:
 	@rm -rvf $(KWINPKG_DIR) $(DIST_DIR) $(BUILD_DIR)

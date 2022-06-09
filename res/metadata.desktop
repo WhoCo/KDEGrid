@@ -1,0 +1,23 @@
+[Desktop Entry]
+Name=KDEGrid
+Comment=Grid-based Window Controller
+Icon=preferences-system-windows
+Type=Service
+Encoding=UTF-8
+
+X-Plasma-API=declarativescript
+X-Plasma-MainScript=ui/main.qml
+
+X-KDE-PluginInfo-Name=kdegrid
+X-KDE-PluginInfo-Author=WhoCo
+X-KDE-PluginInfo-Version=$VER
+X-KDE-PluginInfo-EnabledByDefault=true
+
+X-KDE-PluginInfo-Depends=
+X-KDE-PluginInfo-License=CC
+X-KDE-ServiceTypes=KWin/Script,KCModule
+X-KDE-ConfigModule=kwin/effects/configs/kcm_kwin4_genericscripted
+X-KDE-Library=kwin/effects/configs/kcm_kwin4_genericscripted
+
+X-KDE-PluginKeyword=kdegrid
+X-KDE-ParentComponents=kdegrid

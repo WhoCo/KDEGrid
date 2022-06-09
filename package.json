@@ -1,0 +1,22 @@
+{
+	"name": "kdegrid",
+	"version": "$VER",
+	"description": "A grid-based tiling extension for KWin",
+	"main": "build/obj/main.js",
+	"directories": {
+		"test": "test"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"mocha": "^6.0.0",
+		"typescript": "^4.7.3"
+	},
+	"scripts": {
+		"test": "mocha 'test/*.spec.js'",
+		"clean": "rm -r build dist",
+		"build": "make",
+		"package": "make package"
+	},
+	"author": "Freeman",
+	"license": "CC"
+}

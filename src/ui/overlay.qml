@@ -6,12 +6,12 @@ import QtQuick.Layouts 1.15;
 import QtQuick.Controls 2.15;
 import QtQml 2.15;
 
-// import "../code/main.js" as SCRIPT;
-
-/* PlasmaCore.Dialog */ Window {
+/// <todo author="Nx">
+/// Wrap the Window (overlay) in an Item (id: manager) to compartmentalize the state and separate it from the UI.
+/// </todo>
+Window {
 	id: overlay;
 
-	// location: PlasmaCore.Types.Floating;
 	flags: Qt.Tool | Qt.CustomizeWindowHint | Qt.BypassGraphicsProxyWidget |
 				Qt.FramelessWindowHint |
 		   // Qt.WindowDoesNotAcceptFocus | Qt.WindowTransparentForInput
@@ -43,6 +43,10 @@ import QtQml 2.15;
 	Item {
 		id: manager;
 
+		/// <todo author="Nx">
+		/// I would like to see predefined "panels" implemented that a window can be dragged to. I am calling this "select" mode. The current
+		/// difficulty is mouse tracking and window activation (overlay).
+		/// </todo>
 		state: "manage";
 
 		states: [
@@ -67,10 +71,14 @@ import QtQml 2.15;
 				PropertyChanges {
 					target: manager;
 
+					startPoint: null;
 				}
 			}
 		]
 
+        /// <remarks author="Nx">
+        /// Cannot assign null to point. Use var instead.
+        // </remarks> 
 		property /* point */ var startPoint: null;
 	}
 
@@ -85,23 +93,13 @@ import QtQml 2.15;
 
 		acceptedButtons: Qt.LeftButton | Qt.RightButton;
 
-		states: [
-			State {
-				name: "painting";
-				PropertyChanges {
-					target: object
-
-				}
-			}
-		]
-
 		onPressed: {
-			console.debug("overlay.QML: [IN] mouseArea.onPressed()", JSON.stringify(mouse));
+			console.debug(`kdegrid.overlay: [IN] mouseArea.onPressed()`, JSON.stringify(mouse));
 			if (mouse.button !== Qt.LeftButton)
 				return;
 
 			if (isOutsidePaintGrid(mouse.x, mouse.y)) {
-				console.debug("overlay.QML: [OUT] mouseArea.onPressed()", "isOutsidePaintGrid(x, y) == true");
+				console.debug("kdegrid.overlay: [OUT] mouseArea.onPressed()", "isOutsidePaintGrid(x, y) == true");
 				return;
 			}
 
@@ -110,33 +108,33 @@ import QtQml 2.15;
 			manager.startPoint = p;
 			var r = adjustPointsForPaintBox(mouse.x, mouse.y, mouse.x, mouse.y);
 			paintGrid.updatePaintBox(r);
-			console.debug("overlay.QML: [OUT] mouseArea.onPressed()");
+			console.debug("kdegrid.overlay: [OUT] mouseArea.onPressed()");
 		}
 
 		onPositionChanged: {
-			console.debug("overlay.QML: [IN] mouseArea.onPositionChanged()", JSON.stringify(mouse));
+			console.debug("kdegrid.overlay: [IN] mouseArea.onPositionChanged()", JSON.stringify(mouse));
 			if (manager.startPoint == null /* || mouse.button !== Qt.LeftButton */) {
-				console.debug("overlay.QML: [OUT] mouseArea.onPositionChanged() EARLY");
+				console.debug("kdegrid.overlay: [OUT] mouseArea.onPositionChanged() EARLY");
 				return;
 			}
 
 			if (isOutsidePaintGrid(mouse.x, mouse.y)) {
-				console.debug("overlay.QML: [OUT] mouseArea.onPositionChanged()", "isOutsidePaintGrid(x, y) == true");
+				console.debug("kdegrid.overlay: [OUT] mouseArea.onPositionChanged()", "isOutsidePaintGrid(x, y) == true");
 				return;
 			}
 
 			var r = adjustPointsForPaintBox(manager.startPoint.x, manager.startPoint.y, mouse.x, mouse.y);
 			paintGrid.updatePaintBox(r);
-			console.debug("overlay.QML: [OUT] mouseArea.onPositionChanged()");
+			console.debug("kdegrid.overlay: [OUT] mouseArea.onPositionChanged()");
 		}
 
 		onClicked: {
-			console.debug("overlay.QML: [IN] mouseArea.onClicked()", JSON.stringify(mouse));
+			console.debug("kdegrid.overlay: [IN] mouseArea.onClicked()", JSON.stringify(mouse));
 			if (mouse.button !== Qt.RightButton)
 				return;
 
 			if (isOutsidePaintGrid(mouse.x, mouse.y)) {
-				console.debug("overlay.QML: [OUT] mouseArea.onClicked()", "isOutsidePaintGrid(x, y) == true");
+				console.debug("kdegrid.overlay: [OUT] mouseArea.onClicked()", "isOutsidePaintGrid(x, y) == true");
 				return;
 			}
 
@@ -144,16 +142,16 @@ import QtQml 2.15;
 			manager.startPoint = p;
 			var r = adjustPointsForPaintBox(mouse.x, mouse.y, mouse.x, mouse.y);
 			paintGrid.updatePaintBox(r);
-			console.debug("overlay.QML: [OUT] mouseArea.onClicked()");
+			console.debug("kdegrid.overlay: [OUT] mouseArea.onClicked()");
 		}
 
 		onReleased: {
-			console.debug("overlay.QML: [IN] mouseArea.onReleased()", JSON.stringify(mouse));
+			console.debug("kdegrid.overlay: [IN] mouseArea.onReleased()", JSON.stringify(mouse));
 			if (manager.startPoint == null || mouse.button !== Qt.LeftButton)
 				return;
 
 			if (isOutsidePaintGrid(mouse.x, mouse.y)) {
-				console.debug("overlay.QML: [DATA] mouseArea.onReleased()", "isOutsidePaintGrid(x, y) == true", "Clipping to grid.");
+				console.debug("kdegrid.overlay: [DATA] mouseArea.onReleased()", "isOutsidePaintGrid(x, y) == true", "Clipping to grid.");
 				mouse = clipToPaintGrid(mouse.x, mouse.y);
 			}
 
@@ -161,11 +159,11 @@ import QtQml 2.15;
 			paintGrid.updatePaintBox(r);
 			overlay.complete(finalizeRectForPlacement(r));
 			endPaint();
-			console.debug("overlay.QML: [OUT] mouseArea.onReleased()");
+			console.debug("kdegrid.overlay: [OUT] mouseArea.onReleased()");
 		}
 
 		function isOutsidePaintGrid(x, y) {
-			console.debug("overlay.QML: [IN] mouseArea.isOutsidePaintGrid()", JSON.stringify(
+			console.debug("kdegrid.overlay: [IN] mouseArea.isOutsidePaintGrid()", JSON.stringify(
 				{
 					"paintGrid": {
 						"x": paintGrid.x,
@@ -304,6 +302,10 @@ import QtQml 2.15;
 			Layout.columnSpan: 1;
 		}
 
+		/// <remarks author="Nx">
+		/// Originally, this would add/remove elements (Rectangle) in response to changes in the paintBox properties. This produced
+		/// inconsistent results. Now, cells are generated to fill the grid, then shown when they are not occluded by the paintBox.
+		/// </remarks>
 		Repeater {
 			id: paintGridRepeater;
 			model: (paintGrid.rows * paintGrid.columns) /* - (paintBox.Layout.rowSpan * paintBox.Layout.columnSpan) */ || 0;
@@ -332,8 +334,11 @@ import QtQml 2.15;
 				border.color: overlay.gridBorderColor;
 			}
 
+			/// <todo author="Nx">
+			/// Remove this. It is not used.
+			/// </todo>
 			function isCollisionPosition(index) {
-				console.debug("overlay.QML: [IN] isCollisionPosition()", JSON.stringify({"index": index}));
+				console.debug("kdegrid.overlay: [IN] isCollisionPosition()", JSON.stringify({"index": index}));
 
 				if (!paintBox.visible)
 					return false;
@@ -342,18 +347,18 @@ import QtQml 2.15;
 				var res = p.x >= paintBox.Layout.column && (p.x <= (paintBox.Layout.column + paintBox.Layout.columnSpan - 1)) &&
 					p.y >= paintBox.Layout.row && (p.y <= (paintBox.Layout.row + paintBox.Layout.rowSpan - 1));
 
-				console.debug("overlay.QML: [OUT] isCollisionPosition()", JSON.stringify({"index": index, "p": p, "res": res}));
+				console.debug("kdegrid.overlay: [OUT] isCollisionPosition()", JSON.stringify({"index": index, "p": p, "res": res}));
 				return res;
 			}
 		}
 
 		function updatePaintBox(r) {
-			console.debug("overlay.QML: [IN] paintGrid.updatePaintBox()", JSON.stringify({ "r": r }));
+			console.debug("kdegrid.overlay: [IN] paintGrid.updatePaintBox()", JSON.stringify({ "r": r }));
 
 			//var vy = paintGrid.height / paintGrid.rows;
 			//var vx = paintGrid.width / paintGrid.columns;
 
-			//console.debug("overlay.QML: [DATA] paintGrid.updatePaintBox()", JSON.stringify({ "vy": vy, "vx": vx }));
+			//console.debug("kdegrid.overlay: [DATA] paintGrid.updatePaintBox()", JSON.stringify({ "vy": vy, "vx": vx }));
 
 			//paintBox.Layout.row = Math.floor(r.top / vy);
 			//paintBox.Layout.column = Math.floor(r.left / vx);
@@ -367,7 +372,7 @@ import QtQml 2.15;
 			paintBox.Layout.rowSpan = r.height;
 			paintBox.Layout.columnSpan = r.width;
 
-			console.debug("overlay.QML: [DATA] paintGrid.updatePaintBox()", JSON.stringify({
+			console.debug("kdegrid.overlay: [DATA] paintGrid.updatePaintBox()", JSON.stringify({
 				"Layout.row": paintBox.Layout.row,
 				"Layout.column": paintBox.Layout.column,
 				"Layout.rowSpan": paintBox.Layout.rowSpan,
@@ -375,23 +380,23 @@ import QtQml 2.15;
 			}));
 
 			paintBox.visible = true;
-			console.debug("overlay.QML: [OUT] paintGrid.updatePaintBox()");
+			console.debug("kdegrid.overlay: [OUT] paintGrid.updatePaintBox()");
 		}
 	}
 
 	onActiveChanged: {
-		console.debug("overlay.QML: [IN] onActiveChanged()", JSON.stringify({"active": active}));
+		console.debug("kdegrid.overlay: [IN] onActiveChanged()", JSON.stringify({"active": active}));
 
 		if (!active)
 			cancel();
 
-		console.debug("overlay.QML: [OUT] onActiveChanged()");
+		console.debug("kdegrid.overlay: [OUT] onActiveChanged()");
 	}
 
 	signal managing(r: rect);
 
 	function beginManage(r) {
-		console.debug("overlay.QML: [IN] beginManage()", JSON.stringify(r));
+		console.debug("kdegrid.overlay: [IN] beginManage()", JSON.stringify(r));
 
 		overlay.x = r.x;
 		overlay.y = r.y;
@@ -403,43 +408,41 @@ import QtQml 2.15;
 
 		overlay.__show();
 		overlay.managing(r);
-		console.debug("overlay.QML: [OUT] beginManage()");
+		console.debug("kdegrid.overlay: [OUT] beginManage()");
 	}
 
 	signal selecting(r: rect);
 
 	function beginSelect(r) {
-		console.debug("overlay.QML: [IN] beginSelect()", JSON.stringify(r));
+		console.debug("kdegrid.overlay: [IN] beginSelect()", JSON.stringify(r));
 
 		overlay.x = r.x;
 		overlay.y = r.y;
-		// overlay.opacity = 0.2;
 		overlay.width = r.width;
 		overlay.height = r.height;
-	 //   content.width = r.width;
-	 //   content.height = r.height;
+
+		// manager.state = "selecting";
 
 		overlay.__show();
 		overlay.selecting(r);
-		console.debug("overlay.QML: [OUT] beginSelect()");
+		console.debug("kdegrid.overlay: [OUT] beginSelect()");
 	}
 
 	signal painting(r: rect);
 
 	function beginPaint(r) {
-		console.debug("overlay.QML: [IN] beginPaint()", JSON.stringify(r));
+		console.debug("kdegrid.overlay: [IN] beginPaint()", JSON.stringify(r));
 
 		overlay.x = r.x;
 		overlay.y = r.y;
-		// overlay.opacity = 1.0;
 		overlay.width = r.width;
 		overlay.height = r.height;
-	//    content.width = r.width;
-	//    content.height = r.height;
+
+		// manager.state = "painting";
 
 		overlay.__show();
 		overlay.painting(r);
-		console.debug("overlay.QML: [OUT] beginPaint()");
+		console.debug("kdegrid.overlay: [OUT] beginPaint()");
 	}
 
 	function __show() {
@@ -452,7 +455,9 @@ import QtQml 2.15;
 	signal cancelled();
 
 	function cancel() {
-		console.debug("overlay.QML: [IN] cancel()");
+		console.debug("kdegrid.overlay: [IN] cancel()");
+
+		// manager.state = "";
 
 		mouseArea.enabled = false;
 		overlay.visibility = 0; // QWindow::Hidden
@@ -462,17 +467,13 @@ import QtQml 2.15;
 	signal completed(r: rect);
 
 	function complete(r) {
-		console.debug("overlay.QML: [IN] complete()");
+		console.debug("kdegrid.overlay: [IN] complete()");
+
+		// manager.state = "";
 
 		mouseArea.enabled = false;
 		overlay.visibility = 0; // QWindow::Hidden
 		overlay.completed(r);
-		console.debug("overlay.QML: [OUT] complete()", JSON.stringify(r));
+		console.debug("kdegrid.overlay: [OUT] complete()", JSON.stringify(r));
 	}
-
-	/*
-	onClosing: {
-		close.accepted = false;
-	}
-	*/
 }

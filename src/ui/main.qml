@@ -7,44 +7,22 @@ import QtQuick.Controls 2.15;
 import QtQml 2.15;
 import Qt.labs.platform 1.1;
 
-
-// import org.kde.plasma.core 2.0 as PlasmaCore;
-// import org.kde.plasma.components 2.0 as Plasma;
-// import org.kde.kwin 2.0;
-// import org.kde.taskmanager 0.1 as TaskManager;
-
-// import "../code/main.js" as SCRIPT;
-
 Item {
     id: script
 
 	property var targetDisplay: null;
 	property var trackedClient: null;
 
-    SystemTrayIcon {
-		visible: false && true;
-        icon.name: "KDEGrid"
-        icon.source: "res/tray.png"
-
-        menu: Menu {
-            visible: false;
-        }
-
-        onActivated: {
-            Qt.quit();
-        }
-    }
-
     Loader {
         id: overlayLoader
         source: "overlay.qml";
 
         onLoaded: {
-			console.debug("kdegrid.QML: [IN] overlayLoader.onLoaded", overlayLoader.item);
+			console.debug("kdegrid: [IN] overlayLoader.onLoaded", overlayLoader.item);
 
 			script.applyConfiguration();
 
-			console.debug("kdegrid.QML: [OUT] overlayLoader.onLoaded");
+			console.debug("kdegrid: [OUT] overlayLoader.onLoaded");
         }
 	}
 
@@ -52,11 +30,11 @@ Item {
 		target: options;
 
 		function onConfigChanged() {
-			console.debug("kdegrid.QML: [IN] Connections@options#onConfigChanged()");
+			console.debug("kdegrid: [IN] Connections@options#onConfigChanged()");
 
 			script.applyConfiguration();
 
-			console.debug("kdegrid.QML: [OUT] Connections@options#onConfigChanged()");
+			console.debug("kdegrid: [OUT] Connections@options#onConfigChanged()");
 		}
 	}
 
@@ -64,10 +42,10 @@ Item {
         target: overlayLoader.item;
 
         function onCompleted(r: rect) {
-			console.debug("kdegrid.QML: [IN] Connections@overlayLoader.item#onCompleted()", JSON.stringify({"r": r}));
+			console.debug("kdegrid: [IN] Connections@overlayLoader.item#onCompleted()", JSON.stringify({"r": r}));
 
 			if (script.trackedClient == null) {
-				console.debug("kdegrid.QML: [OUT] Connections@overlayLoader.item#onCompleted()", "trackedClient is null");
+				console.debug("kdegrid: [OUT] Connections@overlayLoader.item#onCompleted()", "trackedClient is null");
 				return;
 			}
 
@@ -77,43 +55,53 @@ Item {
 			script.setClientGeometry(script.trackedClient, Qt.rect(ca.x + r.x, ca.y + r.y, r.width, r.height));
 			script.trackedClient = null;
 			script.targetDisplay = null;
-			console.debug("kdegrid.QML: [OUT] Connections@overlayLoader.item#onCompleted()");
+			console.debug("kdegrid: [OUT] Connections@overlayLoader.item#onCompleted()");
 		}
 
         function onCancelled() {
-			console.debug("kdegrid.QML: [IN] Connections@overlayLoader.item#onCancelled()");
+			console.debug("kdegrid: [IN] Connections@overlayLoader.item#onCancelled()");
 
 			script.trackedClient = null;
 
-			console.debug("kdegrid.QML: [OUT] Connections@overlayLoader.item#onCancelled()");
+			console.debug("kdegrid: [OUT] Connections@overlayLoader.item#onCancelled()");
 		}
     }
 
+	/// <todo author="Nx">
+	/// The "activeScreen" changed signal does not exist. Is this a bug in KWin? This is required to implement cross-screen window
+	/// placement.
+	/// </todo>
 	Connections {
 		target: workspace;
 
 		/*
 		function onActiveScreenChanged(screen) {
-			console.debug("kdegrid.QML: [IN] Connections@workspace.onActiveScreenChanged()", JSON.stringify({"screen": screen}));
+			console.debug("kdegrid: [IN] Connections@workspace.onActiveScreenChanged()", JSON.stringify({"screen": screen}));
 
-			console.debug("kdegrid.QML: [OUT] Connections@workspace.onActiveScreenChanged()");
+			script.targetDisplay = screen;
+
+			console.debug("kdegrid: [OUT] Connections@workspace.onActiveScreenChanged()");
 		}
 		*/
 	}
 
+    /// <remarks author="Nx">
+    /// None of this Connections code does anything useful. It is here in the anticipation a way to respond to mouse
+    /// clicks will be discovered.
+    /// </remarks>
     Connections {
         target: workspace.activeClient;
 
         function onClientStartUserMovedResized(client) {
-            console.debug("kdegrid.QML: [IN] activeClient.onClientStartUserMovedResized()", client);
+			console.debug("kdegrid: [IN] activeClient.onClientStartUserMovedResized()", client);
 
             if (!isValidClient(client)) {
-                console.debug("kdegrid.QML: [OUT] activeClient.onClientStartUserMovedResized()#isValidClient", JSON.stringify({"specialWindow": client.specialWindow, "fullScreen": client.fullScreen, "resizeable": client.resizeable, "onAllDesktops": client.onAllDesktops}));
+				console.debug("kdegrid: [OUT] activeClient.onClientStartUserMovedResized()#isValidClient", JSON.stringify({"specialWindow": client.specialWindow, "fullScreen": client.fullScreen, "resizeable": client.resizeable, "onAllDesktops": client.onAllDesktops}));
                 return;
             }
 
             if (!client.move || client.resize) {
-                console.debug("kdegrid.QML: [OUT] activeClient.onClientStartUserMovedResized()", JSON.stringify({"resize": client.resize, "move": client.move}));
+				console.debug("kdegrid: [OUT] activeClient.onClientStartUserMovedResized()", JSON.stringify({"resize": client.resize, "move": client.move}));
                 return;
             }
 
@@ -121,80 +109,82 @@ Item {
           //  var screen = workspace.clientArea(KWin.FullScreenArea, workspace.activeScreen, workspace.currentDesktop);
          //   overlayLoader.item.beginSelect(Qt.rect(screen.x, screen.y, 1000, 1000));
 
-            console.debug("kdegrid.QML: [OUT] activeClient.onClientStartUserMovedResized()");
+			console.debug("kdegrid: [OUT] activeClient.onClientStartUserMovedResized()");
         }
 
         function clientStepUserMovedResized(client, r) {
-            console.debug("kdegrid.QML: [IN] activeClient.clientStepUserMovedResized()", client, r);
+			console.debug("kdegrid: [IN] activeClient.clientStepUserMovedResized()", client, r);
 
-            console.debug("kdegrid.QML: [OUT] activeClient.clientStepUserMovedResized()");
+			console.debug("kdegrid: [OUT] activeClient.clientStepUserMovedResized()");
         }
 
         function clientFinishUserMovedResized(client) {
-            console.debug("kdegrid.QML: [IN] activeClient.clientFinishUserMovedResized()", client);
+			console.debug("kdegrid: [IN] activeClient.clientFinishUserMovedResized()", client);
 
 			// script.trackedClient = null;
        //     overlayLoader.item.cancel();
 
-            console.debug("kdegrid.QML: [OUT] activeClient.clientFinishUserMovedResized()");
+			console.debug("kdegrid: [OUT] activeClient.clientFinishUserMovedResized()");
         }
 
         function onMoveResizedChanged() {
             var client = workspace.activeClient;
 
             if (!isValidClient(client)) {
-                console.debug("kdegrid.QML: [OUT] activeClient.onMoveResizedChanged()#isValidClient", JSON.stringify({"specialWindow": client.specialWindow, "fullScreen": client.fullScreen, "resizeable": client.resizeable, "onAllDesktops": client.onAllDesktops}));
+				console.debug("kdegrid: [OUT] activeClient.onMoveResizedChanged()#isValidClient", JSON.stringify({"specialWindow": client.specialWindow, "fullScreen": client.fullScreen, "resizeable": client.resizeable, "onAllDesktops": client.onAllDesktops}));
                 return;
             }
 
             if (!client.move || client.resize) {
              //   overlayLoader.item.cancel();
-            //    console.debug("kdegrid.QML: [OUT] activeClient.onClientStartUserMovedResized()", JSON.stringify({"resize": client.resize, "move": client.move}));
+			//    console.debug("kdegrid: [OUT] activeClient.onClientStartUserMovedResized()", JSON.stringify({"resize": client.resize, "move": client.move}));
                 return;
             }
         }
     }
 
 	Component.onCompleted: {
-		console.debug("kdegrid.QML: [IN] Component.onCompleted()");
+		console.debug("kdegrid: [IN] Component.onCompleted()");
 
-		// overlayLoader.item.beginPaint(Qt.rect(1920, 0, 1000, 1000));
+        // For Qt Creator testing.
+		overlayLoader.item.beginPaint(Qt.rect(1920, 0, 1000, 1000));
 
 		script.init();
 
-	//	var state = SCRIPT.main(scriptRoot);
+        // So far, no need for a backing script.
+	//	var state = SCRIPT.main(script);
 
-		console.debug("kdegrid.QML: [OUT] Component.onCompleted()");
+		console.debug("kdegrid: [OUT] Component.onCompleted()");
 	}
 
 	function init() {
-        console.debug("kdegrid.QML: [IN] init()");
+		console.debug("kdegrid: [IN] init()");
 
         KWin.registerShortcut(
             "KDEGrid: Paint (Focused Window)",
             "KDEGrid: Paint (Focused Window)",
             "Meta+Ctrl+X",
             function () {
-                console.debug("kdegrid.QML: [IN] #shortcut/onPaintHandler()");
+				console.debug("kdegrid: [IN] #shortcut/onPaintHandler()");
                 var client = workspace.activeClient;
 
                 if (client != null) try {
 					script.beginPaint(client);
                 } catch (ex) {
-                    console.error("kdegrid.QML: [EX] #shortcut/onPaintHandler()", ex);
+					console.error("kdegrid: [EX] #shortcut/onPaintHandler()", ex);
                 } else {
-                    console.debug("kdegrid.QML: [ERR] #shortcut/onPaintHandler(): workspace.activeClient is null");
+					console.debug("kdegrid: [ERR] #shortcut/onPaintHandler(): workspace.activeClient is null");
                 }
 
-                console.debug("kdegrid.QML: [OUT] #shortcut/onPaintHandler()");
+				console.debug("kdegrid: [OUT] #shortcut/onPaintHandler()");
             }
         );
 
-		console.debug("kdegrid.QML: [OUT] init()");
+		console.debug("kdegrid: [OUT] init()");
     }
 
 	function applyConfiguration() {
-		console.debug("kdegrid.QML: [IN] applyConfiguration()");
+		console.debug("kdegrid: [IN] applyConfiguration()");
 
 		overlayLoader.item.rows = KWin.readConfig("kcfg_layoutDefaultRows", 9);
 		overlayLoader.item.columns = KWin.readConfig("kcfg_layoutDefaultColumns", 9);
@@ -211,24 +201,24 @@ Item {
 		overlayLoader.item.paintBorderColor = KWin.readConfig("kcfg_themePaintBorderColor", "#E0A54200");
 		overlayLoader.item.paintBorderThickness = KWin.readConfig("kcfg_themePaintBorderThickness", 4);
 
-		console.debug("kdegrid.QML: [OUT] applyConfiguration()");
+		console.debug("kdegrid: [OUT] applyConfiguration()");
 	}
 
 	function beginPaint(client) {
-		console.debug("kdegrid.QML: [IN] beginPaint()", client);
+		console.debug("kdegrid: [IN] beginPaint()", client);
 
         if (client == null)
 			return false;
 
         if (!isValidClient(client)) {
-			console.debug("kdegrid.QML: [OUT] beginPaint()#isValidClient", JSON.stringify({"specialWindow": client.specialWindow, "fullScreen": client.fullScreen, "resizeable": client.resizeable, "onAllDesktops": client.onAllDesktops}));
+			console.debug("kdegrid: [OUT] beginPaint()#isValidClient", JSON.stringify({"specialWindow": client.specialWindow, "fullScreen": client.fullScreen, "resizeable": client.resizeable, "onAllDesktops": client.onAllDesktops}));
             notifyInvalidClient(client);
 			return false;
         }
 
         /*
         if (!client.move || client.resize) {
-			console.debug("kdegrid.QML: [OUT] beginPaint()", JSON.stringify({"resize": client.resize, "move": client.move}));
+			console.debug("kdegrid: [OUT] beginPaint()", JSON.stringify({"resize": client.resize, "move": client.move}));
             notifyInvalidClient(client);
 			return false;
         }
@@ -240,7 +230,7 @@ Item {
         var screen = workspace.clientArea(KWin.FullScreenArea, client.screen, client.desktop);
         overlayLoader.item.beginPaint(Qt.rect(screen.x, screen.y, screen.width, screen.height));
 
-		console.debug("kdegrid.QML: [OUT] beginPaint()");
+		console.debug("kdegrid: [OUT] beginPaint()");
 		return true;
     }
 
@@ -251,8 +241,13 @@ Item {
         return true;
     }
 
+    /// <todo author="Nx">
+    /// How can/should a notification be posted to alert the user that the target client (window) is not manageable?
+    /// </todo>
     function notifyInvalidClient(client) {
+		console.debug("kdegrid: [IN] notifyInvalidClient()", client);
 
+		console.debug("kdegrid: [OUT] notifyInvalidClient()");
     }
 
 	function setClientGeometry(client, r) {

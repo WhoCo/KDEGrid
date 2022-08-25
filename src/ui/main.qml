@@ -147,7 +147,7 @@ Item {
 		console.debug("kdegrid: [IN] Component.onCompleted()");
 
         // For Qt Creator testing.
-		// overlayLoader.item.beginPaint(Qt.rect(1920, 0, 1000, 1000));
+        // overlayLoader.item.beginPaint(Qt.rect(1920, 0, 1000, 1000));
 
 		script.init();
 

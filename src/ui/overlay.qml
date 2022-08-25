@@ -264,17 +264,20 @@ Window {
 		}
 	}
 
-	GridLayout {
+    /* GridLayout */ Item {
 		id: paintGrid;
 
 		anchors.fill: parent;
 		z: 1000;
 
-		rows: overlay.rows || 1;
-		columns: overlay.columns || 1;
+        property int rows: overlay.rows || 1;
+        property int columns: overlay.columns || 1;
 
-		columnSpacing: 0;
-		rowSpacing: 0;
+        property int _ROW_HEIGHT: Math.floor(paintGrid.height / paintGrid.rows);
+        property int _COLUMN_WIDTH: Math.floor(paintGrid.width / paintGrid.columns);
+
+        // columnSpacing: 0;
+        // rowSpacing: 0;
 
 		/// Are these broken. Their base definitions are FINAL and cannot be overridden but they always evaluate to
 		/// an empty value ("")?
@@ -282,24 +285,27 @@ Window {
 		// property int bottom: y + height;
 
 		Rectangle {
-			id: paintBox;
+            id: paintBox;
 
 			visible: false;
 
-			z: 1000;
+        //	z: 1000;
 			color: overlay.paintBackgroundColor;
 			border.color: overlay.paintBorderColor;
 			border.width: overlay.paintBorderThickness;
 
-			//width: (paintGrid.width / paintGrid.columns) * paintBox.Layout.columnSpan;
-			//height: (paintGrid.height / paintGrid.rows) * paintBox.Layout.rowSpan;
+            x: paintBox.Layout.column * paintGrid._COLUMN_WIDTH;
+            y: paintBox.Layout.row * paintGrid._ROW_HEIGHT;
 
-			Layout.fillWidth: true;
-			Layout.fillHeight: true;
-			Layout.row: 0;
-			Layout.column: 0;
-			Layout.rowSpan: 1;
-			Layout.columnSpan: 1;
+            width: paintBox.Layout.columnSpan * paintGrid._COLUMN_WIDTH;
+            height: paintBox.Layout.rowSpan * paintGrid._ROW_HEIGHT;
+
+        //    Layout.fillWidth: true;
+        //    Layout.fillHeight: true;
+            Layout.row: 0;
+            Layout.column: 0;
+            Layout.rowSpan: 1;
+            Layout.columnSpan: 1;
 		}
 
 		/// <remarks author="Nx">
@@ -321,14 +327,20 @@ Window {
 						   (_instance.Layout.row <= (paintBox.Layout.row + paintBox.Layout.rowSpan - 1)));
 				enabled: visible;
 
-				z: -1000;
+                x: (index % paintGrid.columns) * paintGrid._COLUMN_WIDTH;
+                y: Math.floor(index / paintGrid.columns) * paintGrid._ROW_HEIGHT;
 
-				Layout.fillWidth: true;
-				Layout.fillHeight: true;
-				Layout.row: Math.floor(index / paintGrid.columns);
-				Layout.column: index % paintGrid.columns;
-				Layout.rowSpan: 1;
-				Layout.columnSpan: 1;
+                width: paintGrid._COLUMN_WIDTH;
+                height: paintGrid._ROW_HEIGHT;
+
+            //	z: -1000;
+
+            //	Layout.fillWidth: true;
+            //	Layout.fillHeight: true;
+                Layout.row: Math.floor(index / paintGrid.columns);
+                Layout.column: index % paintGrid.columns;
+                Layout.rowSpan: 1;
+                Layout.columnSpan: 1;
 
 				border.width: overlay.gridBorderThickness;
 				border.color: overlay.gridBorderColor;
